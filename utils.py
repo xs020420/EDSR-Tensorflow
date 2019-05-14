@@ -53,8 +53,7 @@ Borrowed from https://github.com/tetrachrome/subpixel
 Used for subpixel phase shifting after deconv operations
 """
 
-def tensorshow(t):
-	print()
+
 
 def _phase_shift(I, r):
 	bsize, a, b, c = I.get_shape().as_list() #get_shape返回一个元祖
