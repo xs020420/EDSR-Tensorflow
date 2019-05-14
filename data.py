@@ -39,7 +39,7 @@ def load_dataset(data_dir, img_size):
 			for coord in coords:
 				imgs.append((data_dir+"/"+img,coord))
 		except:
-			print "oops"
+			print("oops")
 	test_size = min(10,int( len(imgs)*0.2))
 	random.shuffle(imgs)
 	test_set = imgs[:test_size]

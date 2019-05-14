@@ -13,7 +13,7 @@ parser.add_argument("--iterations",default=1000,type=int)
 args = parser.parse_args()
 data.load_dataset(args.dataset,args.imgsize)
 if args.imgsize % args.scale != 0:
-    print(f"Image size {args.imgsize} is not evenly divisible by scale {arg.scale}")
+    print(f"Image size {args.imgsize} is not evenly divisible by scale {args.scale}")
     exit()
 down_size = args.imgsize//args.scale
 network = EDSR(down_size,args.layers,args.featuresize,args.scale)

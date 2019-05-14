@@ -52,8 +52,12 @@ def upsample(x,scale=2,features=64,activation=tf.nn.relu):
 Borrowed from https://github.com/tetrachrome/subpixel
 Used for subpixel phase shifting after deconv operations
 """
+
+def tensorshow(t):
+	print()
+
 def _phase_shift(I, r):
-	bsize, a, b, c = I.get_shape().as_list()
+	bsize, a, b, c = I.get_shape().as_list() #get_shape返回一个元祖
 	bsize = tf.shape(I)[0] # Handling Dimension(None) type for undefined batch dim
 	X = tf.reshape(I, (bsize, a, b, r, r))
 	X = tf.transpose(X, (0, 1, 2, 4, 3))  # bsize, a, b, 1, 1
