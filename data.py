@@ -2,7 +2,7 @@ import scipy.misc
 import random
 import numpy as np
 import os
-
+import math
 train_set = []
 test_set = []
 batch_index = 0
@@ -35,7 +35,7 @@ def load_dataset(data_dir, img_size):
 			x,y,z = tmp.shape
 			coords_x = x / img_size
 			coords_y = y/img_size
-			coords = [ (q,r) for q in range(coords_x) for r in range(coords_y) ]
+			coords = [ (q,r) for q in range(math.floor(coords_x)) for r in range(math.floor(coords_y)) ]
 			for coord in coords:
 				imgs.append((data_dir+"/"+img,coord))
 		except:
@@ -101,7 +101,7 @@ def get_batch(batch_size,original_size,shrunk_size):
 			y.append(img)"""
 	max_counter = len(train_set)/batch_size
 	counter = batch_index % max_counter
-	window = [x for x in range(counter*batch_size,(counter+1)*batch_size)]
+	window = [x for x in range(int(counter*batch_size),int((counter+1)*batch_size))]
 	imgs = [train_set[q] for q in window]
 	x = [scipy.misc.imresize(get_image(q,original_size),(shrunk_size,shrunk_size)) for q in imgs]#scipy.misc.imread(q[0])[q[1][0]*original_size:(q[1][0]+1)*original_size,q[1][1]*original_size:(q[1][1]+1)*original_size].resize(shrunk_size,shrunk_size) for q in imgs]
 	y = [get_image(q,original_size) for q in imgs]#scipy.misc.imread(q[0])[q[1][0]*original_size:(q[1][0]+1)*original_size,q[1][1]*original_size:(q[1][1]+1)*original_size] for q in imgs]
