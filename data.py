@@ -25,7 +25,7 @@ def load_dataset(data_dir, img_size):
 		else:
 			train_set.append(data_dir+"/"+img_files[i])
 	return"""
-	global train_set
+	global train_set#在函数内部改变外部全局变量时候，要先用global申明
 	global test_set
 	imgs = []
 	img_files = os.listdir(data_dir)
@@ -35,9 +35,9 @@ def load_dataset(data_dir, img_size):
 			x,y,z = tmp.shape
 			coords_x = x / img_size
 			coords_y = y/img_size
-			coords = [ (q,r) for q in range(math.floor(coords_x)) for r in range(math.floor(coords_y)) ]
+			coords = [ (q,r) for q in range(math.floor(coords_x)) for r in range(math.floor(coords_y)) ]#等价于两个嵌套for循环
 			for coord in coords:
-				imgs.append((data_dir+"/"+img,coord))
+				imgs.append((data_dir+"/"+img,coord))#添加元祖
 		except:
 			print("oops")
 	test_size = min(10,int( len(imgs)*0.2))

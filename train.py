@@ -15,7 +15,7 @@ data.load_dataset(args.dataset,args.imgsize)
 if args.imgsize % args.scale != 0:
     print(f"Image size {args.imgsize} is not evenly divisible by scale {args.scale}")
     exit()
-down_size = args.imgsize//args.scale
+down_size = args.imgsize//args.scale#将原图
 network = EDSR(down_size,args.layers,args.featuresize,args.scale)
 network.set_data_fn(data.get_batch,(args.batchsize,args.imgsize,down_size),data.get_test_set,(args.imgsize,down_size))
 network.train(args.iterations,args.savedir)

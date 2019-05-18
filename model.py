@@ -92,7 +92,7 @@ class EDSR(object):
 
 		#One final convolution on the upsampling output
 		output = x#slim.conv2d(x,output_channels,[3,3])
-		self.out = tf.clip_by_value(output+mean_x,0.0,255.0)
+		self.out = tf.clip_by_value(output+mean_x,0.0,255.0)#把值压缩在0.0-255.0之间
 
 		self.loss = loss = tf.reduce_mean(tf.losses.absolute_difference(image_target,output))
 	
@@ -146,7 +146,7 @@ class EDSR(object):
 	"""
 	def predict(self,x):
 		print("Predicting...")
-		if (len(x.shape) == 3) and not(x.shape[0] == self.img_size and x.shape[1] == self.img_size):
+		if (len(x.shape) == 3) and not(x.shape[0] == self.img_size and x.shape[1] == self.img_size):#若为彩色图，且和网络训练时的输入大小不一样
 			num_across = x.shape[0]//self.img_size
 			num_down = x.shape[1]//self.img_size
 			tmp_image = np.zeros([x.shape[0]*self.scale,x.shape[1]*self.scale,3])
