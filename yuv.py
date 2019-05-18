@@ -19,6 +19,6 @@ def y4mtoyuv():
     path = os.path.join(dir_path,name)
     print(path)
     #os.system("ffmpeg -i %s.y4m -vsync 0 %s.yuv "%(path,"001"))
-    os.system("ffmpeg -i Youku_00000_l.y4m  %d.bmp")
+    os.system("ffmpeg -i Youku_00000_h_GT.y4m  yuvH1_bmp/%d.bmp")
 
 y4mtoyuv()

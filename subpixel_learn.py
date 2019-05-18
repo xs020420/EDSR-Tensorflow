@@ -40,7 +40,7 @@ def subpixel_test():
         print(sess.run(tf.squeeze(b, axis=0)))
     print((_phase_shift(a,2)))
 
-im1 = cv2.imread("im_1.bmp")
+im1 = cv2.imread("yuvH1_bmp/1.bmp")
 print(im1.shape)
 im2 = cv2.imread("output_im_1.bmp")
 print(im2.shape)
