@@ -28,4 +28,4 @@ def extract_frames(src_path, target_path):
 
 
 # 这里我都用的绝对路径，在执行文件的建两个文件，一个放y4m的源文件train，还有一个就是放生成bmp的文件夹test1
-extract_frames(src_path='D:/Program Files/youku/youku_00000_00049_l/', target_path='D:/Program Files/youku/youku_00000_00049_l_single/')
+extract_frames(src_path='D:/ly/youku/youku_00000_00049_h_GT/', target_path='D:/ly/youku/youku_00000_00049_h_GT_single/')

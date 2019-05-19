@@ -7,6 +7,7 @@ use:help to understand how to conduct subpixel shuffle in matrix
 import tensorflow as tf
 import cv2
 import numpy as np
+
 np.set_printoptions(threshold=np.inf)
 g1 = tf.Graph()
 
@@ -40,15 +41,31 @@ def subpixel_test():
         print(sess.run(tf.squeeze(b, axis=0)))
     print((_phase_shift(a,2)))
 
-im1 = cv2.imread("yuvH1_bmp/1.bmp")
-print(im1.shape)
-im2 = cv2.imread("output_im_1.bmp")
-print(im2.shape)
-print(5//3)
-img = []
-img.append((1,2))
-print(type(img[0]))
+def log10(x):
+  numerator = tf.log(x)
+  denominator = tf.log(tf.constant(10, dtype=numerator.dtype))
+  return numerator / denominator
 
+def image_psnr(image_target,image_output):
+    image_target = cv2.imread(src_path).astype(np.float32)
+    image_output = cv2.imread(dest_path).astype(np.float32)
+    if(image_target.shape != image_output.shape):
+        print("same shape of ndarray is required")
 
+    img_size = image_target.shape[0]
+    output_channels = image_target.shape[3]
+    target = tf.placeholder(tf.float32, [img_size, img_size, output_channels])
+    output = tf.placeholder(tf.float32, [img_size, img_size, output_channels])
+    mse = tf.reduce_mean(tf.squared_difference(target, output))
+    PSNR = tf.constant(255 ** 2, dtype=tf.float32) / mse
+    PSNR = tf.constant(10, dtype=tf.float32) *log10(PSNR)
+    with tf.Session(graph=g1) as sess:
+        sess.run(PSNR)
+        print(sess.run(PSNR))
 
+src_path = r'out\target_1.bmp'
+dest_path = 'out\output_1.bmp'
+image_target=cv2.imread(src_path).astype(np.float32)
+output = cv2.imread(dest_path).astype(np.float32)
+image_psnr(image_target,output)
 

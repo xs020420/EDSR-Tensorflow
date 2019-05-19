@@ -5,8 +5,8 @@ import data
 import os
 parser = argparse.ArgumentParser()
 parser.add_argument("--dataset",default="data/General-100")
-parser.add_argument("--imgsize",default=100,type=int)
-parser.add_argument("--scale",default=2,type=int)
+parser.add_argument("--imgsize",default=200,type=int)
+parser.add_argument("--scale",default=4,type=int)
 parser.add_argument("--layers",default=32,type=int)
 parser.add_argument("--featuresize",default=256,type=int)
 parser.add_argument("--batchsize",default=10,type=int)

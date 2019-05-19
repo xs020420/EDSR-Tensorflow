@@ -40,7 +40,7 @@ def load_dataset(data_dir, img_size):
 				imgs.append((data_dir+"/"+img,coord))#添加元祖
 		except:
 			print("oops")
-	test_size = min(10,int( len(imgs)*0.2))
+	test_size = min(10,int( len(imgs)*0.2))#选10张作为测试集合
 	random.shuffle(imgs)
 	test_set = imgs[:test_size]
 	train_set = imgs[test_size:][:200]
