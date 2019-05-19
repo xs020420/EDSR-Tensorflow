@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 
 np.set_printoptions(threshold=np.inf)
-g1 = tf.Graph()
+
 
 def _phase_shift(I, r):
     with tf.Session(graph=g1) as sess:
@@ -47,25 +47,32 @@ def log10(x):
   return numerator / denominator
 
 def image_psnr(image_target,image_output):
-    image_target = cv2.imread(src_path).astype(np.float32)
-    image_output = cv2.imread(dest_path).astype(np.float32)
-    if(image_target.shape != image_output.shape):
-        print("same shape of ndarray is required")
+    g1 = tf.Graph()
+    with g1.as_default():
 
-    img_size = image_target.shape[0]
-    output_channels = image_target.shape[3]
-    target = tf.placeholder(tf.float32, [img_size, img_size, output_channels])
-    output = tf.placeholder(tf.float32, [img_size, img_size, output_channels])
-    mse = tf.reduce_mean(tf.squared_difference(target, output))
-    PSNR = tf.constant(255 ** 2, dtype=tf.float32) / mse
-    PSNR = tf.constant(10, dtype=tf.float32) *log10(PSNR)
+        if(image_target.shape != image_output.shape):
+            print("same shape of ndarray is required")
+
+        image_height = image_target.shape[0]
+        image_width = image_target.shape[1]
+        output_channels = image_target.shape[2]
+
+        target = tf.placeholder(tf.float32, [1,image_height, image_width, output_channels])
+        output = tf.placeholder(tf.float32, [1,image_height, image_width, output_channels])
+        mse = tf.reduce_mean(tf.squared_difference(target, output))
+        PSNR = tf.constant(255 ** 2, dtype=tf.float32) / mse
+        PSNR = tf.constant(10, dtype=tf.float32) *log10(PSNR)
     with tf.Session(graph=g1) as sess:
-        sess.run(PSNR)
+        sess.run(PSNR,feed_dict ={target : image_target,output: image_output} )
         print(sess.run(PSNR))
 
 src_path = r'out\target_1.bmp'
 dest_path = 'out\output_1.bmp'
 image_target=cv2.imread(src_path).astype(np.float32)
 output = cv2.imread(dest_path).astype(np.float32)
+image_target =image_target[np.newaxis,:,:,:]
+output = output[np.newaxis,:,:,:]
+print(output.shape)
+print(image_target.shape)
 image_psnr(image_target,output)
 
