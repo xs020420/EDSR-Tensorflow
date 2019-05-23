@@ -88,7 +88,7 @@ returns x,y where:
 	-x is the input set of shape [-1,shrunk_size,shrunk_size,channels]
 	-y is the target set of shape [-1,original_size,original_size,channels]
 """
-def get_batch(batch_size,original_size,shrunk_size):
+def get_batch(batch_size,original_size,shrunk_size):#制作训练图片对（input和target）
 	global batch_index
 	"""img_indices = random.sample(range(len(train_set)),batch_size)
 	for i in range(len(img_indices)):

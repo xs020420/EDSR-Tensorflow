@@ -14,7 +14,7 @@ parser.add_argument("--savedir",default="saved_models")
 parser.add_argument("--iterations",default=1000,type=int)
 parser.add_argument("--numimgs",default=5,type=int)
 parser.add_argument("--outdir",default="out")
-parser.add_argument("--image")
+parser.add_argument("--image",default = "1.bmp")
 args = parser.parse_args()
 if not os.path.exists(args.outdir):
 	os.mkdir(args.outdir)

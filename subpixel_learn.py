@@ -59,7 +59,8 @@ def image_psnr(image_target,image_output):
 
         target = tf.placeholder(tf.float32, [image_height, image_width, output_channels])
         output = tf.placeholder(tf.float32, [image_height, image_width, output_channels])
-        print(target.shape)
+
+        print(target[0].shape)
 
         mse = tf.reduce_mean(tf.squared_difference(target, output))
         PSNR = tf.constant(255 ** 2, dtype=tf.float32) / mse
