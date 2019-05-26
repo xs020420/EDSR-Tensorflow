@@ -3,47 +3,106 @@ import random
 import numpy as np
 import os
 import math
-train_set = []
-test_set = []
+import re
+from tqdm import tqdm
+import pickle
+
+input_set = []
+target_set = []
+
 batch_index = 0
 
-"""
-Load set of images in a directory.
-This will automatically allocate a 
-random 20% of the images as a test set
+youku_data_path = 'D:\ly\youku'
+train_low_single_dir_list = []
+train_high_single_dir_list = []
+test_low_single_dir_list = []
 
-data_dir: path to directory containing images
+
 """
-def load_dataset(data_dir, img_size):
-	"""img_files = os.listdir(data_dir)
-	test_size = int(len(img_files)*0.2)
-	test_indices = random.sample(range(len(img_files)),test_size)
-	for i in range(len(img_files)):
-		#img = scipy.misc.imread(data_dir+img_files[i])
-		if i in test_indices:
-			test_set.append(data_dir+"/"+img_files[i])
-		else:
-			train_set.append(data_dir+"/"+img_files[i])
-	return"""
-	global train_set#在函数内部改变外部全局变量时候，要先用global申明
-	global test_set
-	imgs = []
-	img_files = os.listdir(data_dir)
-	for img in img_files:
-		try:
-			tmp= scipy.misc.imread(data_dir+"/"+img)
-			x,y,z = tmp.shape
-			coords_x = x / img_size
-			coords_y = y/img_size
-			coords = [ (q,r) for q in range(math.floor(coords_x)) for r in range(math.floor(coords_y)) ]#等价于两个嵌套for循环
-			for coord in coords:
-				imgs.append((data_dir+"/"+img,coord))#添加元祖
-		except:
-			print("oops")
-	test_size = min(10,int( len(imgs)*0.2))#选10张作为测试集合
-	random.shuffle(imgs)
-	test_set = imgs[:test_size]
-	train_set = imgs[test_size:][:200]
+Get image path according
+to a block dir
+For example:inputdata/block1/sample_dir/image_path
+
+"""
+def get_image_list(dir_list):
+	image_list = []
+	for block_dir in dir_list:  # block_dir:D:\ly\youku\youku_00000_00049_l_single
+		for sample_dir in os.listdir(block_dir):  # sample_dir:Youku_00000_l
+			for image_path in os.listdir(os.path.join(block_dir, sample_dir)):  # Youku_00000_l-0001.bmp
+				image_list.append(os.path.join(block_dir, sample_dir,image_path))
+	print(len(image_list))
+	return image_list
+
+
+"""
+Get image block list
+and make input and target list
+and
+return input_list and target_list
+"""
+def load_dataset(high_size,low_size):
+	# 找到测试集文件夹和训练集文件夹，测试集较大，所以有多个文件夹。使用正则表达式根据数字查找
+	for filename in os.listdir(youku_data_path):
+		if filename.endswith('single'):  # 寻找存放单张图片的文件夹
+			filepath = os.path.join(youku_data_path, filename)
+
+			if (re.search(r'_00249_', filename) == None):  # 如果是训练集
+				if (re.search(r'_l_', filename) != None):  # 如果是低清文件夹
+					train_low_single_dir_list.append(filepath)
+				if (re.search(r'_h_', filename) != None):
+					train_high_single_dir_list.append(filepath)
+			else:
+				test_low_single_dir_list.append(filepath)
+
+	# 读取input和target文件目录，并存入列表
+	print(train_low_single_dir_list)
+	print(train_high_single_dir_list)
+	print(test_low_single_dir_list)
+
+	input_list = get_image_list(train_low_single_dir_list)
+	target_list = get_image_list(train_high_single_dir_list)
+
+	global input_set#在函数内部改变外部全局变量时候，要先用global申明
+	global target_set
+
+	try:
+		list_file = open('input_set.pickle', 'rb')
+		input_set = pickle.load(list_file)
+		list_file = open('target_set.pickle', 'rb')
+		target_set = pickle.load(list_file)
+	except:
+		#以下是分块代码，分好块后，以（image_path,块名）的元祖存入列表。
+		for img in tqdm(input_list):#image_path_list
+			try:
+				tmp= scipy.misc.imread(img)
+				x,y,z = tmp.shape
+				coords_x = x / low_size
+				coords_y = y/low_size
+				coords = [ (q,r) for q in range(math.floor(coords_x)) for r in range(math.floor(coords_y)) ]#等价于两个嵌套for循环
+				for coord in coords:
+					input_set.append((img,coord))#添加元祖
+			except:
+				print("oops")
+
+		for img in tqdm(target_list):#image_path_list
+			try:
+				tmp= scipy.misc.imread(img)
+				x,y,z = tmp.shape
+				coords_x = x / high_size
+				coords_y = y/high_size
+				coords = [ (q,r) for q in range(math.floor(coords_x)) for r in range(math.floor(coords_y)) ]#等价于两个嵌套for循环
+				for coord in coords:
+					target_set.append((img,coord))#添加元祖
+			except:
+				print("oops")
+
+		list_file = open('input_set.pickle','wb')
+		pickle.dump(input_set,list_file)
+		list_file.close()
+
+		list_file = open('target_set.pickle','wb')
+		pickle.dump(target_set,list_file)
+		list_file.close()
 	return
 
 """
@@ -55,24 +114,12 @@ to the first (size x size) pixels in the image.
 
 returns the test set of your data
 """
-def get_test_set(original_size,shrunk_size):
-	"""for i in range(len(test_set)):
-		img = scipy.misc.imread(test_set[i])
-		if img.shape:
-			img = crop_center(img,original_size,original_size)		
-			x_img = scipy.misc.imresize(img,(shrunk_size,shrunk_size))
-			y_imgs.append(img)
-			x_imgs.append(x_img)"""
-	imgs = test_set
-	get_image(imgs[0],original_size)
-	x = [scipy.misc.imresize(get_image(q,original_size),(shrunk_size,shrunk_size)) for q in imgs]#scipy.misc.imread(q[0])[q[1][0]*original_size:(q[1][0]+1)*original_size,q[1][1]*original_size:(q[1][1]+1)*original_size].resize(shrunk_size,shrunk_size) for q in imgs]
-	y = [get_image(q,original_size) for q in imgs]#scipy.misc.imread(q[0])[q[1][0]*original_size:(q[1][0]+1)*original_size,q[1][1]*original_size:(q[1][1]+1)*original_size] for q in imgs]
-	return x,y
 
-def get_image(imgtuple,size):
+def get_image(imgtuple,size,scale):#获取分块后的图片，scale为低清图片到高清素片的放大倍数
+	assert scale in [1,2, 3, 4]
 	img = scipy.misc.imread(imgtuple[0])
 	x,y = imgtuple[1]
-	img = img[x*size:(x+1)*size,y*size:(y+1)*size]
+	img = img[x*size*scale:(x+1)*size*scale,y*size*scale:(y+1)*size*scale]
 	return img
 	
 
@@ -88,7 +135,7 @@ returns x,y where:
 	-x is the input set of shape [-1,shrunk_size,shrunk_size,channels]
 	-y is the target set of shape [-1,original_size,original_size,channels]
 """
-def get_batch(batch_size,original_size,shrunk_size):#制作训练图片对（input和target）
+def get_batch(batch_size,original_size):#制作训练图片对（input和target），使用了分块
 	global batch_index
 	"""img_indices = random.sample(range(len(train_set)),batch_size)
 	for i in range(len(img_indices)):
@@ -99,12 +146,13 @@ def get_batch(batch_size,original_size,shrunk_size):#制作训练图片对（inp
 			x_img = scipy.misc.imresize(img,(shrunk_size,shrunk_size))
 			x.append(x_img)
 			y.append(img)"""
-	max_counter = len(train_set)/batch_size
+	max_counter = len(input_set)/batch_size
 	counter = batch_index % max_counter
-	window = [x for x in range(int(counter*batch_size),int((counter+1)*batch_size))]
-	imgs = [train_set[q] for q in window]
-	x = [scipy.misc.imresize(get_image(q,original_size),(shrunk_size,shrunk_size)) for q in imgs]#scipy.misc.imread(q[0])[q[1][0]*original_size:(q[1][0]+1)*original_size,q[1][1]*original_size:(q[1][1]+1)*original_size].resize(shrunk_size,shrunk_size) for q in imgs]
-	y = [get_image(q,original_size) for q in imgs]#scipy.misc.imread(q[0])[q[1][0]*original_size:(q[1][0]+1)*original_size,q[1][1]*original_size:(q[1][1]+1)*original_size] for q in imgs]
+	window = [x for x in range(int(counter*batch_size),int((counter+1)*batch_size))]#range(a,b)左闭右开,[0,1,2,3,4]
+	imgs_input = [input_set[q] for q in window]
+	imgs_target= [target_set[q] for q in window]
+	x = [get_image(q,original_size,scale = 1) for q in imgs_input]#scipy.misc.imread(q[0])[q[1][0]*original_size:(q[1][0]+1)*original_size,q[1][1]*original_size:(q[1][1]+1)*original_size].resize(shrunk_size,shrunk_size) for q in imgs]
+	y = [get_image(q,original_size,scale = 4) for q in imgs_target]#scipy.misc.imread(q[0])[q[1][0]*original_size:(q[1][0]+1)*original_size,q[1][1]*original_size:(q[1][1]+1)*original_size] for q in imgs]
 	batch_index = (batch_index+1)%max_counter
 	return x,y
 

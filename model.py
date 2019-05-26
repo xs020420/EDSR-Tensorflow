@@ -174,11 +174,11 @@ class EDSR(object):
 	"""
 	Function to setup your input data pipeline
 	"""
-	def set_data_fn(self,fn,args,test_set_fn=None,test_set_args=None):
+	def set_data_fn(self,fn,args):
 		self.data = fn
 		self.args = args
-		self.test_data = test_set_fn
-		self.test_args = test_set_args
+		#self.test_data = test_set_fn
+		#self.test_args = test_set_args
 
 	"""
 	Train the neural network
@@ -200,34 +200,37 @@ class EDSR(object):
 		print("Begin training...")
 		with self.sess as sess:
 			#Initialize all variables
+			sess = tf.InteractiveSession()
 			sess.run(init)
-			test_exists = self.test_data
+
 			#create summary writer for train
 			train_writer = tf.summary.FileWriter(save_dir+"/train",sess.graph)
 
 			#If we're using a test set, include another summary writer for that
-			if test_exists:
-				test_writer = tf.summary.FileWriter(save_dir+"/test",sess.graph)
-				test_x,test_y = self.test_data(*self.test_args)
-				test_feed = {self.input:test_x,self.target:test_y}
+
 
 			#This is our training loop
 			for i in tqdm(range(iterations)):
 				#Use the data function we were passed to get a batch every iteration
-				x,y = self.data(*self.args)
-				#Create feed dictionary for the batch
-				feed = {
-					self.input:x,
-					self.target:y
-				}
-				#Run the train op and calculate the train summary
-				summary,_ = sess.run([merged,train_op],feed)
-				#If we're testing, don't train on test set. But do calculate summary
-				if test_exists:
-					t_summary = sess.run(merged,test_feed)
-					#Write test summary
-					test_writer.add_summary(t_summary,i)
-				#Write train summary for this step
-				train_writer.add_summary(summary,i)
+				try:
+					x,y = self.data(*self.args)
+					#Create feed dictionary for the batch
+					feed = {
+						self.input:x,
+						self.target:y
+					}
+					#Run the train op and calculate the train summary
+
+					summary,_ = sess.run([merged,train_op],feed)
+
+					#If we're testing, don't train on test set. But do calculate summary
+
+					#Write train summary for this step
+					train_writer.add_summary(summary,i)
+					if(i%2 == 0):
+						loss = sess.run(self.loss,feed)
+						print(loss)
+				except:
+					print(i)
 			#Save our trained model		
 			self.save()		
