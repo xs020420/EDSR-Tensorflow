@@ -74,6 +74,8 @@ def load_dataset(high_size,low_size):
 		input_set = pickle.load(list_file)
 		list_file = open('target_set.pickle', 'rb')
 		target_set = pickle.load(list_file)
+		list_file = open('train_set.pickle', 'rb')
+		train_set = pickle.load(list_file)
 	except:
 		# 先进行hash编码，去除相似帧。由于相似帧大多连续，只和上一帧图进行比较。
 		print("dhash encoding")
@@ -153,6 +155,10 @@ def load_dataset(high_size,low_size):
 		for i in range(len(input_set)):
 			tmp = (input_set[i],target_set[i])
 			train_set.append(tmp)
+
+		list_file = open('train_set.pickle','wb')
+		pickle.dump(train_set,list_file)
+		list_file.close()
 
 		list_file = open('input_set.pickle','wb')
 		pickle.dump(input_set,list_file)

@@ -237,6 +237,7 @@ class EDSR(object):
 						print(loss,loss_counter)
 				except:
 					print(i)
+
 				if(loss_counter>=30):
 					break
 
