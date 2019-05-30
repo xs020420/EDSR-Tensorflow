@@ -6,12 +6,15 @@ import math
 import re
 from tqdm import tqdm
 import pickle
+import hash
+import cv2
 
 input_set = []
 target_set = []
+train_set =[]
 
 batch_index = 0
-
+hash_threshold =15
 youku_data_path = 'D:\ly\youku'
 train_low_single_dir_list = []
 train_high_single_dir_list = []
@@ -64,6 +67,7 @@ def load_dataset(high_size,low_size):
 
 	global input_set#在函数内部改变外部全局变量时候，要先用global申明
 	global target_set
+	global train_set
 
 	try:
 		list_file = open('input_set.pickle', 'rb')
@@ -71,8 +75,56 @@ def load_dataset(high_size,low_size):
 		list_file = open('target_set.pickle', 'rb')
 		target_set = pickle.load(list_file)
 	except:
+		# 先进行hash编码，去除相似帧。由于相似帧大多连续，只和上一帧图进行比较。
+		print("dhash encoding")
+
+		input_afterhash_list = []
+		target_afterhash_list = []
+
+		image_index=[]
+		distance = []
+		str_last = ""
+
+		for i,img in tqdm(enumerate(input_list)):  # image_path_list
+			tmp = cv2.imread(img)
+			tmp = cv2.resize(tmp,(9,8))
+			str_current = hash.dhash(hash.bgr2gray(tmp))
+			if(i==0):
+				str_last =str_current
+				input_afterhash_list.append(img)
+				image_index.append(i)
+			else:
+				dis = hash.hanming_distance(str_last,str_current)
+				if(dis <= hash_threshold):
+					pass
+				else:
+					input_afterhash_list.append(img)
+					image_index.append(i)
+				str_last = str_current
+				distance.append(dis)
+
+		#将经过dhash后，未分块的list保存下来
+		list_file = open('input_afterhash_list.pickle', 'wb')
+		pickle.dump(input_afterhash_list, list_file)
+		list_file.close()
+
+		list_file = open('distance.pickle', 'wb')
+		pickle.dump(distance, list_file)
+		list_file.close()
+
+		#根据image_index对高清图进行筛选
+		for i,img in tqdm(enumerate(target_list)):  # image_path_list
+			if i in image_index:
+				target_afterhash_list.append(img)
+			else:
+				pass
+
+		list_file = open('target_afterhash_list.pickle', 'wb')
+		pickle.dump(target_afterhash_list, list_file)
+		list_file.close()
+
 		#以下是分块代码，分好块后，以（image_path,块名）的元祖存入列表。
-		for img in tqdm(input_list):#image_path_list
+		for img in tqdm(input_afterhash_list):#image_path_list
 			try:
 				tmp= scipy.misc.imread(img)
 				x,y,z = tmp.shape
@@ -84,7 +136,7 @@ def load_dataset(high_size,low_size):
 			except:
 				print("oops")
 
-		for img in tqdm(target_list):#image_path_list
+		for img in tqdm(target_afterhash_list):#image_path_list
 			try:
 				tmp= scipy.misc.imread(img)
 				x,y,z = tmp.shape
@@ -95,6 +147,12 @@ def load_dataset(high_size,low_size):
 					target_set.append((img,coord))#添加元祖
 			except:
 				print("oops")
+
+		#使用元祖列表保存input和target对
+
+		for i in range(len(input_set)):
+			tmp = (input_set[i],target_set[i])
+			train_set.append(tmp)
 
 		list_file = open('input_set.pickle','wb')
 		pickle.dump(input_set,list_file)
@@ -146,11 +204,15 @@ def get_batch(batch_size,original_size):#制作训练图片对（input和target�
 			x_img = scipy.misc.imresize(img,(shrunk_size,shrunk_size))
 			x.append(x_img)
 			y.append(img)"""
-	max_counter = len(input_set)/batch_size
+	max_counter = len(target_set)/batch_size
 	counter = batch_index % max_counter
+	#每进行新的epoch，shuffle一次数据集
+	if(counter == 0):
+		random.shuffle(train_set)
+
 	window = [x for x in range(int(counter*batch_size),int((counter+1)*batch_size))]#range(a,b)左闭右开,[0,1,2,3,4]
-	imgs_input = [input_set[q] for q in window]
-	imgs_target= [target_set[q] for q in window]
+	imgs_input = [train_set[q][0] for q in window]#target 中为输入输出对，元素为元祖的列表
+	imgs_target= [train_set[q][1] for q in window]
 	x = [get_image(q,original_size,scale = 1) for q in imgs_input]#scipy.misc.imread(q[0])[q[1][0]*original_size:(q[1][0]+1)*original_size,q[1][1]*original_size:(q[1][1]+1)*original_size].resize(shrunk_size,shrunk_size) for q in imgs]
 	y = [get_image(q,original_size,scale = 4) for q in imgs_target]#scipy.misc.imread(q[0])[q[1][0]*original_size:(q[1][0]+1)*original_size,q[1][1]*original_size:(q[1][1]+1)*original_size] for q in imgs]
 	batch_index = (batch_index+1)%max_counter
@@ -169,6 +231,8 @@ def crop_center(img,cropx,cropy):
 	startx = random.sample(range(x-cropx-1),1)[0]#x//2-(cropx//2)
 	starty = random.sample(range(y-cropy-1),1)[0]#y//2-(cropy//2)
 	return img[starty:starty+cropy,startx:startx+cropx]
+
+
 
 
 

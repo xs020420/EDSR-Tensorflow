@@ -200,7 +200,6 @@ class EDSR(object):
 		print("Begin training...")
 		with self.sess as sess:
 			#Initialize all variables
-			sess = tf.InteractiveSession()
 			sess.run(init)
 
 			#create summary writer for train
@@ -212,6 +211,7 @@ class EDSR(object):
 			#This is our training loop
 			for i in tqdm(range(iterations)):
 				#Use the data function we were passed to get a batch every iteration
+				loss_counter =0
 				try:
 					x,y = self.data(*self.args)
 					#Create feed dictionary for the batch
@@ -229,8 +229,16 @@ class EDSR(object):
 					train_writer.add_summary(summary,i)
 					if(i%2 == 0):
 						loss = sess.run(self.loss,feed)
-						print(loss)
+
+						if(loss < 3 ):
+							loss_counter = loss_counter+1
+						else:
+							loss_counter = 0
+						print(loss,loss_counter)
 				except:
 					print(i)
+				if(loss_counter>=30):
+					break
+
 			#Save our trained model		
 			self.save()		

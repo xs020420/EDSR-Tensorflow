@@ -9,7 +9,7 @@ parser.add_argument("--layers",default=32,type=int)
 parser.add_argument("--featuresize",default=256,type=int)
 parser.add_argument("--batchsize",default=16,type=int)
 parser.add_argument("--savedir",default='saved_models')
-parser.add_argument("--iterations",default=10000,type=int)
+parser.add_argument("--iterations",default=6000,type=int)
 args = parser.parse_args()
 data.load_dataset(args.imgsize,args.imgsize//args.scale)
 if args.imgsize % args.scale != 0:
