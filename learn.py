@@ -4,6 +4,7 @@ import cv2
 import data
 import pickle
 from tqdm import tqdm
+import random
 
 
 
@@ -44,16 +45,9 @@ def man():
 def woman():
     print("woman work hard")
 
-list_file = open("input_set_afterhash.pickle",'rb')
+list_file = open("train_set.pickle",'rb')
 list1 = pickle.load(list_file)
+random.shuffle(list1)
+for i in range(len(list1)):
+    print((list1[i]))
 
-
-list_file = open("distance.pickle",'rb')
-list = pickle.load(list_file)
-print(len(list))
-
-list_file = open("target_afterhash_list.pickle",'rb')
-list2 = pickle.load(list_file)
-
-for i in range(len (list1)):
-    print(list1[i],list2[i])

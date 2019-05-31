@@ -11,11 +11,11 @@ import cv2
 
 input_set = []
 target_set = []
-train_set =[]
+train_set = []
 
 batch_index = 0
 hash_threshold =15
-youku_data_path = 'D:\ly\youku'
+youku_data_path = 'D:\Program Files\youku'
 train_low_single_dir_list = []
 train_high_single_dir_list = []
 test_low_single_dir_list = []
@@ -76,6 +76,7 @@ def load_dataset(high_size,low_size):
 		target_set = pickle.load(list_file)
 		list_file = open('train_set.pickle', 'rb')
 		train_set = pickle.load(list_file)
+		train_set = train_set[1:10]
 	except:
 		# 先进行hash编码，去除相似帧。由于相似帧大多连续，只和上一帧图进行比较。
 		print("dhash encoding")
@@ -167,6 +168,7 @@ def load_dataset(high_size,low_size):
 		list_file = open('target_set.pickle','wb')
 		pickle.dump(target_set,list_file)
 		list_file.close()
+
 	return
 
 """
@@ -210,7 +212,7 @@ def get_batch(batch_size,original_size):#制作训练图片对（input和target�
 			x_img = scipy.misc.imresize(img,(shrunk_size,shrunk_size))
 			x.append(x_img)
 			y.append(img)"""
-	max_counter = len(target_set)/batch_size
+	max_counter = len(train_set)//batch_size
 	counter = batch_index % max_counter
 	#每进行新的epoch，shuffle一次数据集
 	if(counter == 0):
@@ -222,6 +224,8 @@ def get_batch(batch_size,original_size):#制作训练图片对（input和target�
 	x = [get_image(q,original_size,scale = 1) for q in imgs_input]#scipy.misc.imread(q[0])[q[1][0]*original_size:(q[1][0]+1)*original_size,q[1][1]*original_size:(q[1][1]+1)*original_size].resize(shrunk_size,shrunk_size) for q in imgs]
 	y = [get_image(q,original_size,scale = 4) for q in imgs_target]#scipy.misc.imread(q[0])[q[1][0]*original_size:(q[1][0]+1)*original_size,q[1][1]*original_size:(q[1][1]+1)*original_size] for q in imgs]
 	batch_index = (batch_index+1)%max_counter
+
+	print("batch index:",batch_index)
 	return x,y
 
 """

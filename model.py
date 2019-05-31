@@ -212,31 +212,31 @@ class EDSR(object):
 			for i in tqdm(range(iterations)):
 				#Use the data function we were passed to get a batch every iteration
 				loss_counter =0
-				try:
-					x,y = self.data(*self.args)
-					#Create feed dictionary for the batch
-					feed = {
-						self.input:x,
-						self.target:y
-					}
-					#Run the train op and calculate the train summary
 
-					summary,_ = sess.run([merged,train_op],feed)
+				x,y = self.data(*self.args)
+				#Create feed dictionary for the batch
+				feed = {
+					self.input:x,
+					self.target:y
+				}
+				#Run the train op and calculate the train summary
 
-					#If we're testing, don't train on test set. But do calculate summary
+				summary,_ = sess.run([merged,train_op],feed)
 
-					#Write train summary for this step
-					train_writer.add_summary(summary,i)
-					if(i%2 == 0):
-						loss = sess.run(self.loss,feed)
+				#If we're testing, don't train on test set. But do calculate summary
 
-						if(loss < 3 ):
-							loss_counter = loss_counter+1
-						else:
-							loss_counter = 0
-						print(loss,loss_counter)
-				except:
-					print(i)
+				#Write train summary for this step
+				train_writer.add_summary(summary,i)
+				if(i%2 == 0):
+					loss = sess.run(self.loss,feed)
+
+					if(loss < 3 ):
+						loss_counter = loss_counter+1
+					else:
+						loss_counter = 0
+					print(loss,loss_counter)
+
+				print(i)
 
 				if(loss_counter>=30):
 					break
