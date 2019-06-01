@@ -15,7 +15,7 @@ train_set = []
 
 batch_index = 0
 hash_threshold =15
-youku_data_path = 'D:\Program Files\youku'
+youku_data_path = 'D:\ly\youku'
 train_low_single_dir_list = []
 train_high_single_dir_list = []
 test_low_single_dir_list = []
@@ -76,7 +76,7 @@ def load_dataset(high_size,low_size):
 		target_set = pickle.load(list_file)
 		list_file = open('train_set.pickle', 'rb')
 		train_set = pickle.load(list_file)
-		train_set = train_set[1:10]
+
 	except:
 		# 先进行hash编码，去除相似帧。由于相似帧大多连续，只和上一帧图进行比较。
 		print("dhash encoding")
