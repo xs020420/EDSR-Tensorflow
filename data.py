@@ -12,6 +12,7 @@ import cv2
 input_set = []
 target_set = []
 train_set = []
+validation_srt = []
 
 batch_index = 0
 hash_threshold =15
