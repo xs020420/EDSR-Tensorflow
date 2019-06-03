@@ -23,18 +23,18 @@ import glob
 tt.mp4为输出视频文件名
 """
 
-def imgs2video(imgs_dir, save_name,):
+def imgs2video(imgs_dir, save_name):
 
 
     fps = 24
-    fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-    video_writer = cv2.VideoWriter('C:/Users/lcx/python_exercise/video/1.avi', fourcc, fps, (1920, 1080))
-    imgs = glob.glob(os.path.join('C:/Users/lcx/python_exercise/train_1/Youku_00000_l', '*.bmp'))
+    fourcc = cv2.VideoWriter_fourcc(*'YV12')
+    video_writer = cv2.VideoWriter(save_name, fourcc, fps, (1920, 1080))
+    imgs = glob.glob(os.path.join(imgs_dir, '*.bmp'))
     print(len(imgs))
 
     for i in range(len(imgs)):
-        imgname = os.path.join('C:/Users/lcx/python_exercise/train_1/Youku_00000_l',
-                               'Youku_00000_l-{:04d}.bmp'.format(i))
+        imgname = os.path.join(imgs_dir,
+                               '{}.bmp'.format(i))
         frame = cv2.imread(imgname)
         video_writer.write(frame)
 
@@ -43,10 +43,13 @@ def imgs2video(imgs_dir, save_name,):
 def generate_y4m(src_path, target_path):
     new_path = target_path
 
-    for sample in tqdm(os.listdir(src_path)):
-        sample_dir = src_path + sample
-        y4mfile = new_path + sample.split('_')[0] + '_'+sample.split('_')[1]+"_h_Res.y4m"
-        i = 0
+    for i,sample in enumerate(tqdm(os.listdir(src_path))):
+        sample_dir = src_path + '/'+sample
+        if(i<=4):
+            y4mfile = new_path + '/'+sample.split('_')[0] + '_'+sample.split('_')[1]+"_h_Res.avi"
+        else:
+            y4mfile = new_path + '/'+sample.split('_')[0] + '_'+sample.split('_')[1]+"_h_Sub25_Res.avi"
+
         print(y4mfile,sample_dir)
         imgs2video(sample_dir,y4mfile)
         # for image in os.listdir(sample_dir):
@@ -64,4 +67,16 @@ def generate_y4m(src_path, target_path):
 
 
 # 这里我都用的绝对路径，在执行文件的建两个文件，一个放y4m的源文件train，还有一个就是放生成bmp的文件夹test1
-generate_y4m(src_path='D:/ly/youku/youku_00200_00249_h_GT_single/', target_path='D:/ly/youku/outputy4m/')
+#generate_y4m(src_path='E:\youku\youku_00200_00249_h_GT_single', target_path='E:\youku\output3')
+def avi2y4m(path):
+    avi_list = []
+    for avi in os.listdir(path):
+        if(avi.endswith(".avi")):
+            avi_list.append(avi)
+    for avi in tqdm(avi_list):
+        name =avi.split('.')[0]
+        print(name)
+
+        os.system("ffmpeg -i %s.avi %s.yuv"%(path+'/'+name,path+'/'+name))
+        os.system("ffmpeg -s 1920x1080 -i %s.yuv -vsync 0 %s.y4m"%(path+'/'+name,path+'/'+name))
+avi2y4m('E:\youku\output_I420')
