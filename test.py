@@ -47,7 +47,7 @@ def validation_psnr():
 	sample_num = random.randint(0, len(validation_sample_list))
 	sample = validation_sample_list[sample_num]
 	image_list = os.listdir(validation_input_path+'/'+sample)
-	for i in range(5):
+
 
 
 
