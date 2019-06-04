@@ -174,9 +174,13 @@ class EDSR(object):
 	"""
 	Function to setup your input data pipeline
 	"""
-	def set_data_fn(self,fn,args):
-		self.data = fn
-		self.args = args
+	def set_train_data_fn(self,fn,args):
+		self.train_data = fn
+		self.train_args = args
+
+	def set_val_data_fn(self,fn,args):
+		self.val_data = fn
+		self.val_args = args
 		#self.test_data = test_set_fn
 		#self.test_args = test_set_args
 
@@ -213,7 +217,8 @@ class EDSR(object):
 				#Use the data function we were passed to get a batch every iteration
 				loss_counter =0
 
-				x,y = self.data(*self.args)
+
+				x,y = self.train_data(*self.args)
 				#Create feed dictionary for the batch
 				feed = {
 					self.input:x,
@@ -227,7 +232,7 @@ class EDSR(object):
 
 				#Write train summary for this step
 				train_writer.add_summary(summary,i)
-				if(i%2 == 0):
+				if(i%1 == 0):
 					loss = sess.run(self.loss,feed)
 
 					if(loss < 3 ):
@@ -235,6 +240,14 @@ class EDSR(object):
 					else:
 						loss_counter = 0
 					print(loss,loss_counter)
+
+				#计算验证集合上的损失
+				x,y = self.val_data(*self.val_args)
+				feed = {
+					self.input:x,
+					self.target:y
+				}
+				loss = sess.run(self.loss, feed)
 
 				print(i)
 

@@ -13,13 +13,21 @@ input_set = []
 target_set = []
 train_set = []
 
-batch_index = 0
+val_input_set = []
+val_target_set = []
+val_set =[]
+train_batch_index = 0
+val_batch_index = 0
+
 hash_threshold =15
-youku_data_path = 'D:\Program Files\youku'
+youku_data_path = 'F:\youku'
 train_low_single_dir_list = []
 train_high_single_dir_list = []
+
 test_low_single_dir_list = []
 
+val_low_single_dir_list = []#验证集
+val_high_single_dir_list = []
 
 """
 Get image path according
@@ -48,35 +56,50 @@ def load_dataset(high_size,low_size):
 	for filename in os.listdir(youku_data_path):
 		if filename.endswith('single'):  # 寻找存放单张图片的文件夹
 			filepath = os.path.join(youku_data_path, filename)
-
-			if (re.search(r'_00249_', filename) == None):  # 如果是训练集
+			if(re.search(r'_00150_', filename) != None):#先取出验证集
 				if (re.search(r'_l_', filename) != None):  # 如果是低清文件夹
+					val_low_single_dir_list.append(filepath)
+				if (re.search(r'_h_', filename) != None):
+					val_high_single_dir_list.append(filepath)
+			elif(re.search(r'_00249_', filename) != None):#如果是测试集
+					test_low_single_dir_list.append(filepath)
+			else:
+				if(re.search(r'_l_', filename) != None):
 					train_low_single_dir_list.append(filepath)
 				if (re.search(r'_h_', filename) != None):
 					train_high_single_dir_list.append(filepath)
-			else:
-				test_low_single_dir_list.append(filepath)
-
 	# 读取input和target文件目录，并存入列表
-	print(train_low_single_dir_list)
-	print(train_high_single_dir_list)
-	print(test_low_single_dir_list)
+	print("train set(low):",train_low_single_dir_list)
+	print("train set(high):",train_high_single_dir_list)
+	print("test set(low):",test_low_single_dir_list)
+	print("validation set(low):",val_low_single_dir_list)
+	print("validation set(high):",val_high_single_dir_list)
 
 	input_list = get_image_list(train_low_single_dir_list)
 	target_list = get_image_list(train_high_single_dir_list)
 
-	global input_set#在函数内部改变外部全局变量时候，要先用global申明
+	val_low_list = get_image_list(val_low_single_dir_list)
+	val_high_list = get_image_list(val_low_single_dir_list)
+
+	global input_set#训练集
 	global target_set
 	global train_set
 
-	try:
+	global val_input_set#验证集
+	global val_high_set
+	global val_set
+
+	try:#之前存储过的文件
 		list_file = open('input_set.pickle', 'rb')
 		input_set = pickle.load(list_file)
 		list_file = open('target_set.pickle', 'rb')
 		target_set = pickle.load(list_file)
 		list_file = open('train_set.pickle', 'rb')
 		train_set = pickle.load(list_file)
-		train_set = train_set[1:10]
+
+		list_file = open('val_set.pickle', 'rb')
+		val_set = pickle.load(list_file)
+
 	except:
 		# 先进行hash编码，去除相似帧。由于相似帧大多连续，只和上一帧图进行比较。
 		print("dhash encoding")
@@ -151,23 +174,49 @@ def load_dataset(high_size,low_size):
 			except:
 				print("oops")
 
+		for img in tqdm(val_low_list):#image_path_list
+			try:
+				tmp= scipy.misc.imread(img)
+				x,y,z = tmp.shape
+				coords_x = x / high_size
+				coords_y = y/high_size
+				coords = [ (q,r) for q in range(math.floor(coords_x)) for r in range(math.floor(coords_y)) ]#等价于两个嵌套for循环
+				for coord in coords:
+					val_input_set.append((img,coord))#添加元祖
+			except:
+				print("oops")
+
+		for img in tqdm(val_high_list):#image_path_list
+			try:
+				tmp= scipy.misc.imread(img)
+				x,y,z = tmp.shape
+				coords_x = x / high_size
+				coords_y = y/high_size
+				coords = [ (q,r) for q in range(math.floor(coords_x)) for r in range(math.floor(coords_y)) ]#等价于两个嵌套for循环
+				for coord in coords:
+					val_target_set.append((img,coord))#添加元祖
+			except:
+				print("oops")
+
+
 		#使用元祖列表保存input和target对
 
 		for i in range(len(input_set)):
 			tmp = (input_set[i],target_set[i])
 			train_set.append(tmp)
 
+		for i in range(len(val_input_set)):
+			tmp = (val_input_set[i],val_target_set[i])
+			val_set.append(tmp)
+
 		list_file = open('train_set.pickle','wb')
 		pickle.dump(train_set,list_file)
 		list_file.close()
 
-		list_file = open('input_set.pickle','wb')
-		pickle.dump(input_set,list_file)
+		list_file = open('val_set.pickle','wb')
+		pickle.dump(val_set,list_file)
 		list_file.close()
 
-		list_file = open('target_set.pickle','wb')
-		pickle.dump(target_set,list_file)
-		list_file.close()
 
 	return
 
@@ -201,8 +250,19 @@ returns x,y where:
 	-x is the input set of shape [-1,shrunk_size,shrunk_size,channels]
 	-y is the target set of shape [-1,original_size,original_size,channels]
 """
-def get_batch(batch_size,original_size):#制作训练图片对（input和target），使用了分块
-	global batch_index
+def get_batch(batch_size,original_size,data):#制作训练图片对（input和target），使用了分块
+	global train_batch_index
+	global val_batch_index
+	global train_set
+	global val_set
+
+	if(data == 'train'):
+		data_set = train_set
+		batch_index = train_batch_index
+	elif(data == 'val'):
+		data_set = val_set
+		batch_index =  val_batch_index
+
 	"""img_indices = random.sample(range(len(train_set)),batch_size)
 	for i in range(len(img_indices)):
 		index = img_indices[i]
@@ -212,20 +272,26 @@ def get_batch(batch_size,original_size):#制作训练图片对（input和target�
 			x_img = scipy.misc.imresize(img,(shrunk_size,shrunk_size))
 			x.append(x_img)
 			y.append(img)"""
-	max_counter = len(train_set)//batch_size
+	max_counter = len(data_set)//batch_size
 	counter = batch_index % max_counter
 	#每进行新的epoch，shuffle一次数据集
 	if(counter == 0):
-		random.shuffle(train_set)
+		random.shuffle(data_set)
 
 	window = [x for x in range(int(counter*batch_size),int((counter+1)*batch_size))]#range(a,b)左闭右开,[0,1,2,3,4]
-	imgs_input = [train_set[q][0] for q in window]#target 中为输入输出对，元素为元祖的列表
-	imgs_target= [train_set[q][1] for q in window]
+	imgs_input = [data_set[q][0] for q in window]#target 中为输入输出对，元素为元祖的列表
+	imgs_target= [data_set[q][1] for q in window]
 	x = [get_image(q,original_size,scale = 1) for q in imgs_input]#scipy.misc.imread(q[0])[q[1][0]*original_size:(q[1][0]+1)*original_size,q[1][1]*original_size:(q[1][1]+1)*original_size].resize(shrunk_size,shrunk_size) for q in imgs]
 	y = [get_image(q,original_size,scale = 4) for q in imgs_target]#scipy.misc.imread(q[0])[q[1][0]*original_size:(q[1][0]+1)*original_size,q[1][1]*original_size:(q[1][1]+1)*original_size] for q in imgs]
 	batch_index = (batch_index+1)%max_counter
 
 	print("batch index:",batch_index)
+
+	if(data == 'train'):
+		 train_batch_index = batch_index
+	elif(data == 'val'):
+		 val_batch_index = batch_index
+
 	return x,y
 
 """
