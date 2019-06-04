@@ -45,9 +45,5 @@ def man():
 def woman():
     print("woman work hard")
 
-list_file = open("train_set.pickle",'rb')
-list1 = pickle.load(list_file)
-random.shuffle(list1)
-for i in range(len(list1)):
-    print((list1[i]))
+
 

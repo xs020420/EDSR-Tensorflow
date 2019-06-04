@@ -12,6 +12,7 @@ import cv2
 input_set = []
 target_set = []
 train_set = []
+validation_srt = []
 
 val_input_set = []
 val_target_set = []
@@ -20,7 +21,10 @@ train_batch_index = 0
 val_batch_index = 0
 
 hash_threshold =15
+
 youku_data_path = 'F:\youku'
+
+
 train_low_single_dir_list = []
 train_high_single_dir_list = []
 
@@ -97,8 +101,10 @@ def load_dataset(high_size,low_size):
 		list_file = open('train_set.pickle', 'rb')
 		train_set = pickle.load(list_file)
 
+
 		list_file = open('val_set.pickle', 'rb')
 		val_set = pickle.load(list_file)
+
 
 	except:
 		# 先进行hash编码，去除相似帧。由于相似帧大多连续，只和上一帧图进行比较。

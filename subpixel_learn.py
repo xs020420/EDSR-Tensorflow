@@ -72,8 +72,8 @@ def image_psnr(image_target,image_output):
 
 
 
-src_path = r'out\target_1.bmp'
-dest_path = 'out\output_1.bmp'
+src_path = r'out\input_Youku_00200_l-0001.bmp'
+dest_path = 'out\output_Youku_00200_l-0001.bmp'
 image_target=cv2.imread(src_path).astype(np.float32)
 output = cv2.imread(dest_path).astype(np.float32)
 
