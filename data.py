@@ -189,7 +189,7 @@ def load_dataset(high_size,low_size):
 		for img in tqdm(val_high_list):#image_path_list
 			try:
 				tmp= scipy.misc.imread(img)
-				x,y,z = tmp.shape
+				x,y,z = tmp.shape       
 				coords_x = x / high_size
 				coords_y = y/high_size
 				coords = [ (q,r) for q in range(math.floor(coords_x)) for r in range(math.floor(coords_y)) ]#等价于两个嵌套for循环
